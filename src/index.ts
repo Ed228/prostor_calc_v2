@@ -1,8 +1,8 @@
 import IMask from "imask";
-import { MultiLang } from './MultiLang'
-import { multiLangItems } from './MultiLangItems'
+import {MultiLang} from './MultiLang'
+import {multiLangItems} from './MultiLangItems'
 import Calculator from "./Calculator";
-import { ShowTypes } from './ShowTypes'
+import {ShowTypes} from './ShowTypes'
 
 const query = <T extends Element>(selector: string): T => {
   return document.querySelector(selector) as T
@@ -14,6 +14,7 @@ const queryAll = (selector: string) => {
 
 const radioButtons = queryAll(`.input-group input[type='radio']`)
 const inputsNumber = queryAll(`.input-group input[type='number']`)
+const inputsCheckboxes = queryAll(`.input-group input[type='checkbox']`)
 const inputs = queryAll('#calc-form input:required')
 const fieldSets = queryAll('fieldset')
 
@@ -38,21 +39,21 @@ const lang = document.querySelector('html').getAttribute('lang').split('-').leng
 const calculator = new Calculator()
 const multiLangObj = new MultiLang(multiLangItems, lang)
 
-const printResult = (selector: string, [showMethod, data]:[ShowTypes, string], multiLang: MultiLang) => {
+const printResult = (selector: string, [showMethod, data]: [ShowTypes, string[]], multiLang: MultiLang) => {
   switch (showMethod) {
     case "message":
       query<HTMLElement>('.price-text-cost').style.display = 'none'
-      query<HTMLElement>(selector).innerText = data
+      query<HTMLElement>(selector).innerText = data[0]
       break
     case "twoValues":
       query<HTMLElement>('.price-text-cost').style.display = 'block'
       query<HTMLElement>(selector).innerText =
-        `${multiLang.translate('Від')} ${data} ${multiLang.translate('до')} ${multiLang.translate('тис. грн.')}`
-     break
+        `${multiLang.translate('Від')} ${data[0]} ${multiLang.translate('до')} ${data[1]} ${multiLang.translate('грн')}`
+      break
     case "oneValue":
       query<HTMLElement>('.price-text-cost').style.display = 'block'
       query<HTMLElement>(selector).innerText =
-        `${multiLang.translate("Від")} ${data} ${multiLang.translate('тис. грн.')}`
+        `${multiLang.translate("Від")} ${data[0]} ${multiLang.translate('грн')}`
       break
   }
 }
@@ -87,8 +88,34 @@ inputsNumber.forEach(inputNumber => {
         type: 'number',
         selector: inputNumber.id
       }
+      console.log("Баллы", calculator.getSumRate)
       printResult('.result-calc #result', calculator.calculateCost, multiLangObj)
     })
+  })
+})
+
+inputsCheckboxes.forEach(inputCheckbox => {
+  inputCheckbox.addEventListener('change', (e) => {
+    const checkedCheckBoxes = queryAll(`.input-group input[type='checkbox']:checked`)
+    if (checkedCheckBoxes.length) {
+      let propertyCategory = checkedCheckBoxes[0].getAttribute('data-category').trim()
+      let propertyName = checkedCheckBoxes.map((checkedCheckBox: HTMLInputElement) => {
+        return checkedCheckBox.getAttribute('data-name')
+      }).reduce((val, acc = '</br>') => acc + '<br>' + val)
+      let propertyValue = checkedCheckBoxes.map((checkedCheckBox: HTMLInputElement) => {
+        return parseInt(checkedCheckBox.getAttribute('data-value'))
+      }).reduce((val, acc) => val + acc)
+      calculator.setItem = {
+        propertyCategory,
+        propertyName,
+        propertyValue,
+        type: "checkbox"
+      }
+    } else {
+      calculator.deleteItemType('checkbox')
+    }
+    console.log("Баллы", calculator.getSumRate)
+    printResult('.result-calc #result', calculator.calculateCost, multiLangObj)
   })
 })
 
@@ -108,7 +135,7 @@ query(`#calc-form button[type='submit']`)
     e.preventDefault()
     const radioButtonsChecked = document.querySelectorAll(`fieldset input[type='radio']:checked`)
     if (inputs.every((input: HTMLInputElement) => input.value !== '')
-      && radioButtonsChecked.length === fieldSets.length - inputsNumber.length
+      && radioButtonsChecked.length === fieldSets.length - inputsNumber.length - 1
       && query<HTMLInputElement>(`#calc-form input[type='checkbox']`).checked === true
       && phoneMask.unmaskedValue.length === 12
       && regexMail.test(query<HTMLInputElement>(`#email`).value)) {
@@ -130,8 +157,8 @@ query(`#calc-form button[type='submit']`)
         })
       })
         .then(res => res.text())
-        .then((status)=> {
-          if(+status) {
+        .then((status) => {
+          if (+status) {
             window.location.href = window.location.origin + multiLangObj.translate("/thank-you-page/")
           } else {
             query('#calc-form p').innerHTML = multiLangObj.translate("Сталася помилка, спробуйте пізніше")

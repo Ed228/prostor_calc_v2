@@ -17,9 +17,9 @@ export const multiLangItems: IMultiLangItem[] = [
     "en": "From"
   },
   {
-    "uk": "тис. грн.",
-    "ru": "тыс. грн.",
-    "en": "k UAH"
+    "uk": "грн",
+    "ru": "грн",
+    "en": "UAH"
   },
   {
     "uk": "Сталася помилка, спробуйте пізніше",
@@ -38,8 +38,8 @@ export const multiLangItems: IMultiLangItem[] = [
   },
   {
     "uk": "Пропонуємо звернутися в наш офіс за індивідуальним разрахунком",
-    "ru": "",
-    "en": ""
+    "ru": "Предлгаем обратится в наш офис за индивидуальным расчетом",
+    "en": "We offer to contact our office for an individual calculation"
   },
   {
     "uk": "Кількість",
